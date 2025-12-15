@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ config('app.name', 'AbleLink') }}</title>
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}">
 
     <!-- Tailwind via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -46,6 +49,12 @@
                            OCR & Simplify
                         </a>
 
+                        <!-- Aid Directory Link -->
+                        <a href="{{ route('aid-directory.index') }}"
+                           class="px-5 py-2.5 rounded-full font-semibold text-slate-600 hover:text-blue-700 hover:bg-blue-50 transition-all">
+                           Aid Directory
+                        </a>
+
                         <!-- Profile Link -->
                         <a href="{{ route('profile.show') }}" 
                            class="px-5 py-2.5 rounded-full font-semibold text-slate-600 hover:text-purple-600 hover:bg-purple-50 transition-all">
@@ -64,6 +73,11 @@
                         <a href="{{ route('documents.upload') }}"
                            class="px-6 py-3 rounded-full font-bold text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 transition-all">
                            OCR & Simplify
+                        </a>
+
+                        <a href="{{ route('aid-directory.index') }}"
+                           class="px-6 py-3 rounded-full font-bold text-slate-700 hover:text-blue-700 hover:bg-blue-50 transition-all">
+                           Aid Directory
                         </a>
 
                         <!-- Login -->
@@ -109,5 +123,14 @@
             </div>
         </footer>
     </div>
+
+    <script>
+      // PWA: register service worker (safe no-op on unsupported browsers)
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('{{ asset('service-worker.js') }}').catch(() => {});
+        });
+      }
+    </script>
 </body>
 </html>

@@ -12,6 +12,8 @@ use App\Http\Controllers\Profile\AccessibilityController;
 use App\Http\Controllers\DashboardController; // F2 - Rifat Jahan Roza
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\AidDirectoryController;
+use App\Http\Controllers\Admin\AidResourceController;
 
 
 
@@ -40,6 +42,8 @@ Route::middleware('auth')->group(function () {
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+Route::get('/aid-directory', [AidDirectoryController::class, 'index'])->name('aid-directory.index');
 
 //F4 - Farhan Zarif
 Route::middleware(['auth'])->group(function () {
@@ -75,6 +79,13 @@ Route::get('/admin/login', [App\Http\Controllers\Admin\AdminController::class, '
 Route::post('/admin/login', [App\Http\Controllers\Admin\AdminController::class, 'login'])->name('admin.login.submit');
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/dashboard', [App\Http\Controllers\Admin\AdminController::class, 'dashboard'])->name('admin.dashboard');
+
+    Route::get('/admin/aid-directory', [AidResourceController::class, 'index'])->name('admin.aid-resources.index');
+    Route::get('/admin/aid-directory/create', [AidResourceController::class, 'create'])->name('admin.aid-resources.create');
+    Route::post('/admin/aid-directory', [AidResourceController::class, 'store'])->name('admin.aid-resources.store');
+    Route::get('/admin/aid-directory/{aidResource}/edit', [AidResourceController::class, 'edit'])->name('admin.aid-resources.edit');
+    Route::put('/admin/aid-directory/{aidResource}', [AidResourceController::class, 'update'])->name('admin.aid-resources.update');
+    Route::delete('/admin/aid-directory/{aidResource}', [AidResourceController::class, 'destroy'])->name('admin.aid-resources.destroy');
 });
 
 Route::get('/upload', [DocumentController::class, 'showUploadForm'])->name('documents.upload');
