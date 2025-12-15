@@ -1,43 +1,72 @@
-use OpenAI\Client; // Add this at the top of the file
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Services\DocumentProcessing\DocumentTextExtractor;
+use App\Services\TextSimplification\TextSimplifier;
+use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 
 class DocumentController extends Controller
 {
-    public function showUploadForm() {
+    public function __construct(
+        private readonly DocumentTextExtractor $extractor,
+        private readonly TextSimplifier $simplifier,
+    ) {
+    }
+
+    public function showUploadForm()
+    {
         return view('upload');
     }
 
-    public function processDocument(Request $request) {
-        $request->validate([
-            'document' => 'required|mimes:jpg,jpeg,png,pdf'
+    public function processDocument(Request $request)
+    {
+        $validated = $request->validate([
+            'document' => [
+                'required',
+                'file',
+                'max:10240', // 10MB
+                'mimes:jpg,jpeg,png,pdf,txt',
+            ],
+            'auto_simplify' => ['nullable', 'boolean'],
         ]);
 
-        $file = $request->file('document');
-        $path = $file->getPathName();
+        /** @var UploadedFile $file */
+        $file = $validated['document'];
 
-        // OCR processing
-        $text = (new \thiagoalessio\TesseractOCR\TesseractOCR($path))->run();
+        $result = $this->extractor->extract($file);
 
-        return view('result', ['original_text' => $text]);
+        $viewData = [
+            'original_text' => $result->text,
+            'warnings' => $result->warnings,
+            'source_filename' => $file->getClientOriginalName(),
+        ];
+
+        if (($validated['auto_simplify'] ?? false) && trim($result->text) !== '') {
+            $simplified = $this->simplifier->simplify($result->text);
+            $viewData['simplified_text'] = $simplified->simplifiedText;
+            $viewData['simplified_bullets'] = $simplified->bullets;
+        }
+
+        return view('result', $viewData);
     }
 
-    // Add this new method for simplification
-    public function simplifyText(Request $request) {
-        $text = $request->input('text');
-
-        $client = new Client([
-            'api_key' => env('OPENAI_API_KEY')
+    public function simplifyText(Request $request)
+    {
+        $validated = $request->validate([
+            'text' => ['required', 'string', 'max:200000'],
         ]);
 
-        $response = $client->responses()->create([
-            'model' => 'gpt-4.1-mini',
-            'input' => "Simplify this text for easy understanding:\n\n$text"
-        ]);
+        $text = $validated['text'];
 
-        $simplified = $response->output_text;
+        $simplified = $this->simplifier->simplify($text);
 
         return view('result', [
             'original_text' => $text,
-            'simplified_text' => $simplified
+            'simplified_text' => $simplified->simplifiedText,
+            'simplified_bullets' => $simplified->bullets,
+            'warnings' => [],
         ]);
     }
 }

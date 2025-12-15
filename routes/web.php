@@ -77,6 +77,6 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/dashboard', [App\Http\Controllers\Admin\AdminController::class, 'dashboard'])->name('admin.dashboard');
 });
 
-Route::get('/upload', [DocumentController::class, 'showUploadForm']);
-Route::post('/upload', [DocumentController::class, 'processDocument']);
-Route::post('/simplify', [DocumentController::class, 'simplifyText']);
+Route::get('/upload', [DocumentController::class, 'showUploadForm'])->name('documents.upload');
+Route::post('/upload', [DocumentController::class, 'processDocument'])->name('documents.process');
+Route::post('/simplify', [DocumentController::class, 'simplifyText'])->name('documents.simplify');
