@@ -3,18 +3,32 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
+use Throwable;
 
 class CourseLibraryController extends Controller
 {
     public function index(): View
     {
-        $courses = Course::query()
-            ->published()
-            ->with(['media'])
-            ->orderByDesc('published_at')
-            ->orderByDesc('id')
-            ->get();
+        $courses = collect();
+
+        try {
+            // If migrations haven't been run yet, avoid a 500 and show an empty library.
+            if (Schema::hasTable('courses')) {
+                $courses = Course::query()
+                    ->published()
+                    ->with(['media'])
+                    ->orderByDesc('published_at')
+                    ->orderByDesc('id')
+                    ->get();
+            }
+        } catch (Throwable $e) {
+            Log::warning('Course library query failed.', [
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return view('courses.index', compact('courses'));
     }
