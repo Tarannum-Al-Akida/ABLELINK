@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Course;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -13,11 +15,27 @@ class CourseController extends Controller
 {
     public function index(): View
     {
-        $courses = Course::query()
-            ->withCount('media')
-            ->orderByDesc('published_at')
-            ->orderByDesc('id')
-            ->get();
+        // If migrations haven't been run yet, avoid a 500 and show an empty list.
+        if (! Schema::hasTable('courses')) {
+            /** @var Collection<int, Course> $courses */
+            $courses = collect();
+
+            return view('admin.courses.index', compact('courses'));
+        }
+
+        $query = Course::query()->orderByDesc('published_at')->orderByDesc('id');
+        if (Schema::hasTable('course_media')) {
+            $query->withCount('media');
+        }
+
+        $courses = $query->get();
+
+        // Ensure the view can always render a media_count column.
+        if (! Schema::hasTable('course_media')) {
+            $courses->each(function (Course $course): void {
+                $course->setAttribute('media_count', 0);
+            });
+        }
 
         return view('admin.courses.index', compact('courses'));
     }
