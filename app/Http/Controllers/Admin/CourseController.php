@@ -7,9 +7,11 @@ use App\Models\Course;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Throwable;
 
 class CourseController extends Controller
 {
@@ -65,21 +67,41 @@ class CourseController extends Controller
 
         $baseSlug = trim($data['slug'] ?? '') !== '' ? Str::slug($data['slug']) : Course::makeSlug($data['title']);
         $slug = $baseSlug;
-        $i = 2;
-        while (Course::where('slug', $slug)->exists()) {
-            $slug = $baseSlug.'-'.$i;
-            $i++;
+        try {
+            $i = 2;
+            while (Course::where('slug', $slug)->exists()) {
+                $slug = $baseSlug.'-'.$i;
+                $i++;
+            }
+        } catch (Throwable $e) {
+            Log::warning('Course slug uniqueness check failed.', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->withErrors([
+                'title' => 'Unable to access courses storage. Ensure your database is configured and run `php artisan migrate`.',
+            ])->withInput();
         }
 
-        $course = Course::create([
-            'slug' => $slug,
-            'title' => $data['title'],
-            'summary' => $data['summary'] ?? null,
-            'description' => $data['description'] ?? null,
-            'level' => $data['level'] ?? null,
-            'estimated_minutes' => $data['estimated_minutes'] ?? null,
-            'published_at' => ($data['published'] ?? false) ? now() : null,
-        ]);
+        try {
+            $course = Course::create([
+                'slug' => $slug,
+                'title' => $data['title'],
+                'summary' => $data['summary'] ?? null,
+                'description' => $data['description'] ?? null,
+                'level' => $data['level'] ?? null,
+                'estimated_minutes' => $data['estimated_minutes'] ?? null,
+                'published_at' => ($data['published'] ?? false) ? now() : null,
+            ]);
+        } catch (Throwable $e) {
+            Log::warning('Course create failed.', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->withErrors([
+                'title' => 'Unable to create course. Ensure your database is configured and run `php artisan migrate`.',
+            ])->withInput();
+        }
 
         return redirect()->route('admin.courses.edit', $course)->with('status', 'Course created.');
     }
