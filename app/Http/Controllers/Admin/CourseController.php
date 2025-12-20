@@ -47,6 +47,12 @@ class CourseController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        if (! Schema::hasTable('courses')) {
+            return back()->withErrors([
+                'title' => 'Courses table not found. Run `php artisan migrate` first.',
+            ])->withInput();
+        }
+
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255'],
@@ -87,6 +93,12 @@ class CourseController extends Controller
 
     public function update(Request $request, Course $course): RedirectResponse
     {
+        if (! Schema::hasTable('courses')) {
+            return back()->withErrors([
+                'title' => 'Courses table not found. Run `php artisan migrate` first.',
+            ])->withInput();
+        }
+
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255'],
