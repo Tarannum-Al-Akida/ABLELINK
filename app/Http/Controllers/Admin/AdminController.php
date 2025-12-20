@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class AdminController extends Controller
@@ -52,7 +53,10 @@ class AdminController extends Controller
                 'volunteer' => User::where('role', User::ROLE_VOLUNTEER)->count(),
                 'disabled' => User::where('role', User::ROLE_DISABLED)->count(),
                 'caregiver' => User::where('role', User::ROLE_CAREGIVER)->count(),
-                'courses' => Course::query()->published()->count(),
+                // Avoid a 500 if the courses migrations haven't been run yet.
+                'courses' => Schema::hasTable('courses')
+                    ? Course::query()->published()->count()
+                    : 0,
             ],
             'recentUsers' => User::whereIn('role', User::COMMUNITY_ROLES)
                 ->latest()
