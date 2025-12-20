@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 
+use App\Models\Course;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,6 +52,7 @@ class AdminController extends Controller
                 'volunteer' => User::where('role', User::ROLE_VOLUNTEER)->count(),
                 'disabled' => User::where('role', User::ROLE_DISABLED)->count(),
                 'caregiver' => User::where('role', User::ROLE_CAREGIVER)->count(),
+                'courses' => Course::query()->published()->count(),
             ],
             'recentUsers' => User::whereIn('role', User::COMMUNITY_ROLES)
                 ->latest()

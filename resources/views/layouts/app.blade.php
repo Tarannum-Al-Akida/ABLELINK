@@ -33,6 +33,12 @@
             <!-- Desktop Nav -->
             <nav class="hidden md:flex items-center space-x-2">
                 @if (Route::has('login'))
+                    <!-- Courses -->
+                    <a href="{{ route('courses.index') }}"
+                       class="px-5 py-2.5 rounded-full font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-all">
+                       Courses
+                    </a>
+
                     @auth
                         <!-- Dashboard Link -->
                         <a href="{{ url('/dashboard') }}" 
