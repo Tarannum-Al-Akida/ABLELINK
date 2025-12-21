@@ -79,18 +79,38 @@
                 </div>
 
                 <div class="mt-4">
-                    @if($media->kind === \App\Models\CourseMedia::KIND_VIDEO && $media->media_url)
-                        <video class="w-full rounded-xl border border-slate-200 bg-black" controls>
-                            <source src="{{ $media->media_url }}" type="{{ $media->mime_type ?: 'video/mp4' }}">
-                            @if($media->captions_url)
-                                <track kind="subtitles"
-                                       src="{{ $media->captions_url }}"
-                                       srclang="{{ $media->captions_language ?: 'en' }}"
-                                       label="Subtitles ({{ strtoupper($media->captions_language ?: 'en') }})"
-                                       default>
-                            @endif
-                            Your browser does not support the video tag.
-                        </video>
+                    @if($media->kind === \App\Models\CourseMedia::KIND_VIDEO)
+                        @if($media->embed_url)
+                            <div class="w-full overflow-hidden rounded-xl border border-slate-200 bg-black aspect-video">
+                                <iframe
+                                    class="w-full h-full"
+                                    src="{{ $media->embed_url }}"
+                                    title="{{ $media->title ?: 'YouTube video' }}"
+                                    frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    referrerpolicy="strict-origin-when-cross-origin"
+                                    allowfullscreen
+                                ></iframe>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-2">
+                                This video is embedded from YouTube and should work for all users. Captions/tracks are managed by YouTube;
+                                you can still add an on-page transcript below.
+                            </p>
+                        @elseif($media->media_url)
+                            <video class="w-full rounded-xl border border-slate-200 bg-black" controls>
+                                <source src="{{ $media->media_url }}" type="{{ $media->mime_type ?: 'video/mp4' }}">
+                                @if($media->captions_url)
+                                    <track kind="subtitles"
+                                           src="{{ $media->captions_url }}"
+                                           srclang="{{ $media->captions_language ?: 'en' }}"
+                                           label="Subtitles ({{ strtoupper($media->captions_language ?: 'en') }})"
+                                           default>
+                                @endif
+                                Your browser does not support the video tag.
+                            </video>
+                        @else
+                            <p class="text-slate-600">No media file or URL attached yet.</p>
+                        @endif
                     @elseif($media->kind === \App\Models\CourseMedia::KIND_AUDIO && $media->media_url)
                         <audio class="w-full" controls src="{{ $media->media_url }}"></audio>
                     @elseif($media->kind === \App\Models\CourseMedia::KIND_DOCUMENT && $media->media_url)

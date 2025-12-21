@@ -64,6 +64,106 @@ class CourseMedia extends Model
         return Storage::disk('public')->url($this->media_path);
     }
 
+    public function getEmbedUrlAttribute(): ?string
+    {
+        if (! $this->external_url) {
+            return null;
+        }
+
+        $videoId = self::extractYouTubeVideoId($this->external_url);
+        if (! $videoId) {
+            return null;
+        }
+
+        $startSeconds = self::extractYouTubeStartSeconds($this->external_url);
+
+        $query = [
+            // modestbranding is ignored on some contexts but harmless.
+            'rel' => '0',
+            'modestbranding' => '1',
+        ];
+        if ($startSeconds !== null && $startSeconds > 0) {
+            $query['start'] = (string) $startSeconds;
+        }
+
+        // Use privacy-enhanced mode by default.
+        return 'https://www.youtube-nocookie.com/embed/'.$videoId.'?'.http_build_query($query);
+    }
+
+    private static function extractYouTubeVideoId(string $url): ?string
+    {
+        $parts = parse_url($url);
+        if (! is_array($parts)) {
+            return null;
+        }
+
+        $host = strtolower((string) ($parts['host'] ?? ''));
+        $path = (string) ($parts['path'] ?? '');
+
+        // youtu.be/<id>
+        if ($host === 'youtu.be') {
+            $id = trim($path, '/');
+            return $id !== '' ? $id : null;
+        }
+
+        // *.youtube.com
+        if ($host === 'youtube.com' || str_ends_with($host, '.youtube.com')) {
+            // /watch?v=<id>
+            if (str_starts_with($path, '/watch')) {
+                parse_str((string) ($parts['query'] ?? ''), $query);
+                $id = (string) ($query['v'] ?? '');
+                return $id !== '' ? $id : null;
+            }
+
+            // /embed/<id>
+            if (preg_match('#^/embed/([^/?]+)#', $path, $m)) {
+                return $m[1] ?? null;
+            }
+
+            // /shorts/<id>
+            if (preg_match('#^/shorts/([^/?]+)#', $path, $m)) {
+                return $m[1] ?? null;
+            }
+        }
+
+        return null;
+    }
+
+    private static function extractYouTubeStartSeconds(string $url): ?int
+    {
+        $parts = parse_url($url);
+        if (! is_array($parts)) {
+            return null;
+        }
+
+        $queryString = (string) ($parts['query'] ?? '');
+        if ($queryString === '') {
+            return null;
+        }
+
+        parse_str($queryString, $query);
+
+        // Common forms: &t=90, &t=1m30s, &start=90
+        $raw = $query['start'] ?? $query['t'] ?? null;
+        if ($raw === null) {
+            return null;
+        }
+
+        if (is_numeric($raw)) {
+            return (int) $raw;
+        }
+
+        if (is_string($raw) && preg_match('/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/', $raw, $m)) {
+            $h = (int) ($m[1] ?? 0);
+            $min = (int) ($m[2] ?? 0);
+            $sec = (int) ($m[3] ?? 0);
+            $total = $h * 3600 + $min * 60 + $sec;
+            return $total > 0 ? $total : null;
+        }
+
+        return null;
+    }
+
     public function getCaptionsUrlAttribute(): ?string
     {
         if (! $this->captions_path) {

@@ -58,6 +58,9 @@
                 <label class="block text-sm font-extrabold text-slate-900">External URL (optional)</label>
                 <input name="external_url" value="{{ old('external_url') }}" placeholder="https://..."
                        class="mt-2 w-full rounded-xl border-slate-300 focus:border-blue-500 focus:ring-blue-500" />
+                <p class="text-xs text-slate-500 mt-1">
+                    Tip: If you choose <span class="font-bold">Video</span> and paste a YouTube URL, it will be embedded and playable for everyone.
+                </p>
                 @error('external_url') <p class="text-sm text-red-700 mt-1 font-semibold">{{ $message }}</p> @enderror
             </div>
 
