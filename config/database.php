@@ -3,16 +3,14 @@
 use Illuminate\Support\Str;
 
 /**
- * PHP 8.5 deprecates PDO::MYSQL_ATTR_SSL_CA in favor of Pdo\Mysql::ATTR_SSL_CA.
+ * PHP 8.5+ provides `Pdo\Mysql::ATTR_SSL_CA` for configuring a CA bundle.
  *
- * IMPORTANT: On PHP >= 8.5, do not reference the deprecated constant at all
- * (even as a fallback), otherwise a deprecation warning will be emitted.
+ * We intentionally do NOT reference the legacy PDO constant here to avoid
+ * emitting deprecation warnings on PHP 8.5+.
  */
 $mysqlAttrSslCa = null;
 if (defined('Pdo\\Mysql::ATTR_SSL_CA')) {
     $mysqlAttrSslCa = \Pdo\Mysql::ATTR_SSL_CA;
-} elseif (PHP_VERSION_ID < 80500 && defined('PDO::MYSQL_ATTR_SSL_CA')) {
-    $mysqlAttrSslCa = PDO::MYSQL_ATTR_SSL_CA;
 }
 
 return [
