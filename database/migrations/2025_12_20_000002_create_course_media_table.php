@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -14,7 +15,8 @@ return new class extends Migration
 
         Schema::create('course_media', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('course_id')->constrained('courses')->cascadeOnDelete();
+            // Use explicit type + add FK after ensuring compatible engines.
+            $table->unsignedBigInteger('course_id');
 
             $table->string('kind'); // video | audio | document | link
             $table->string('title')->nullable();
@@ -39,6 +41,27 @@ return new class extends Migration
             $table->index(['course_id', 'kind']);
             $table->index(['course_id', 'is_primary']);
         });
+
+        // Try to ensure InnoDB and add FK. If the existing `courses` table is not InnoDB
+        // (or the DB doesn't support FKs), don't fail the whole migration.
+        try {
+            DB::statement('ALTER TABLE courses ENGINE=InnoDB');
+        } catch (Throwable) {
+            // ignore
+        }
+        try {
+            DB::statement('ALTER TABLE course_media ENGINE=InnoDB');
+        } catch (Throwable) {
+            // ignore
+        }
+
+        try {
+            Schema::table('course_media', function (Blueprint $table) {
+                $table->foreign('course_id')->references('id')->on('courses')->cascadeOnDelete();
+            });
+        } catch (Throwable) {
+            // ignore
+        }
     }
 
     public function down(): void
