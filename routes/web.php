@@ -82,6 +82,6 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/admin/sos/{event}/resolve', [EmergencySosController::class, 'resolve'])->name('admin.sos.resolve');
 });
 
-Route::get('/upload', [DocumentController::class, 'showUploadForm']);
-Route::post('/upload', [DocumentController::class, 'processDocument']);
-Route::post('/simplify', [DocumentController::class, 'simplifyText']);
+Route::get('/upload', [DocumentController::class, 'showUploadForm'])->name('documents.upload');
+Route::post('/upload', [DocumentController::class, 'processDocument'])->name('documents.process');
+Route::post('/simplify', [DocumentController::class, 'simplifyText'])->name('documents.simplify');
