@@ -97,8 +97,87 @@
                  <!-- Emergency Alerts -->
                  <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-center hover:shadow-md transition-all">
                      <p class="text-xs font-bold text-red-400 uppercase tracking-wider mb-2">Emergency Alerts</p>
-                     <h3 class="text-3xl font-extrabold text-red-600">0</h3>
+                     <h3 class="text-3xl font-extrabold text-red-600">{{ $activeSosCount ?? 0 }}</h3>
                  </div>
+            </div>
+
+            <!-- ACTIVE SOS ALERTS -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 mb-8">
+                <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                    <div>
+                        <h5 class="text-lg font-bold text-slate-800">Active SOS Alerts</h5>
+                        <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Newest first</p>
+                    </div>
+                    <div class="px-3 py-1 rounded-full bg-red-50 text-red-700 text-xs font-bold border border-red-100">
+                        {{ $activeSosCount ?? 0 }} Active
+                    </div>
+                </div>
+
+                @if(empty($activeSos) || $activeSos->isEmpty())
+                    <div class="text-slate-500 font-medium">No active SOS alerts right now.</div>
+                @else
+                    <div class="space-y-4">
+                        @foreach($activeSos as $event)
+                            <div class="rounded-2xl border border-red-100 bg-red-50/40 p-5">
+                                <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-bold text-red-700 uppercase tracking-wide">SOS</p>
+                                        <p class="text-lg font-extrabold text-slate-900 truncate">
+                                            {{ $event->user?->name ?? 'Unknown user' }}
+                                        </p>
+                                        <p class="text-sm text-slate-600">
+                                            <span class="font-bold">Email:</span> {{ $event->user?->email ?? 'N/A' }}
+                                            @if($event->user && $event->user->profile && $event->user->profile->phone_number)
+                                                <span class="mx-2 text-slate-300">|</span>
+                                                <span class="font-bold">Phone:</span> {{ $event->user->profile->phone_number }}
+                                            @endif
+                                        </p>
+                                        <p class="text-sm text-slate-600 mt-1">
+                                            <span class="font-bold">Time:</span> {{ $event->created_at?->format('M j, Y g:i A') }}
+                                        </p>
+
+                                        <div class="mt-3 text-sm text-slate-700 space-y-1">
+                                            @if($event->latitude !== null && $event->longitude !== null)
+                                                <p>
+                                                    <span class="font-bold">Location:</span>
+                                                    {{ $event->latitude }}, {{ $event->longitude }}
+                                                    @if($event->accuracy_m)
+                                                        <span class="text-slate-500">(±{{ $event->accuracy_m }}m)</span>
+                                                    @endif
+                                                </p>
+                                                <p>
+                                                    <a class="text-blue-700 font-bold hover:underline"
+                                                       target="_blank"
+                                                       href="https://www.google.com/maps?q={{ $event->latitude }},{{ $event->longitude }}">
+                                                        Open in Google Maps
+                                                    </a>
+                                                </p>
+                                            @elseif($event->address)
+                                                <p><span class="font-bold">Address:</span> {{ $event->address }}</p>
+                                            @else
+                                                <p class="text-slate-500 italic">No location provided (permission denied/unavailable).</p>
+                                            @endif
+
+                                            @if($event->notes)
+                                                <p><span class="font-bold">Notes:</span> {{ $event->notes }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div class="flex-shrink-0">
+                                        <form method="POST" action="{{ route('admin.sos.resolve', $event) }}">
+                                            @csrf
+                                            <button type="submit"
+                                                    class="w-full md:w-auto px-5 py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all">
+                                                Mark Resolved
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
             </div>
 
             <!-- USER ACTIVITY + JOB PLATFORM -->

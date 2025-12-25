@@ -47,6 +47,79 @@
         <!-- MAIN CONTENT -->
         <div class="lg:col-span-3">
             
+            @if(isset($sosAlerts) && $sosAlerts->isNotEmpty())
+                <!-- SOS ALERTS -->
+                <div class="bg-red-50 border border-red-100 rounded-3xl p-8 mb-8 shadow-sm">
+                    <div class="flex items-start justify-between gap-4 mb-5">
+                        <div>
+                            <h3 class="text-2xl font-extrabold text-red-800">Emergency SOS Alerts</h3>
+                            <p class="text-red-700/80 font-medium">One or more of your linked patients triggered an SOS.</p>
+                        </div>
+                        <div class="px-4 py-2 rounded-full bg-white/70 text-red-700 text-sm font-bold border border-red-100">
+                            {{ $sosAlerts->count() }} Active
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        @foreach($sosAlerts as $event)
+                            <div class="bg-white rounded-2xl border border-red-100 p-6">
+                                <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-bold text-red-500 uppercase tracking-wider">SOS</p>
+                                        <p class="text-lg font-extrabold text-slate-900 truncate">{{ $event->user?->name ?? 'Unknown patient' }}</p>
+                                        <p class="text-sm text-slate-600">
+                                            <span class="font-bold">Time:</span> {{ $event->created_at?->format('M j, Y g:i A') }}
+                                        </p>
+                                        @if($event->user && $event->user->profile && $event->user->profile->emergency_contact_phone)
+                                            <p class="text-sm text-slate-600 mt-1">
+                                                <span class="font-bold">Emergency contact:</span>
+                                                {{ $event->user->profile->emergency_contact_name ?? 'Contact' }}
+                                                ({{ $event->user->profile->emergency_contact_phone }})
+                                            </p>
+                                        @endif
+
+                                        <div class="mt-3 text-sm text-slate-700">
+                                            @if($event->latitude !== null && $event->longitude !== null)
+                                                <p>
+                                                    <span class="font-bold">Location:</span>
+                                                    {{ $event->latitude }}, {{ $event->longitude }}
+                                                    @if($event->accuracy_m)
+                                                        <span class="text-slate-500">(±{{ $event->accuracy_m }}m)</span>
+                                                    @endif
+                                                </p>
+                                                <a class="inline-flex items-center mt-2 text-blue-700 font-bold hover:underline"
+                                                   target="_blank"
+                                                   href="https://www.google.com/maps?q={{ $event->latitude }},{{ $event->longitude }}">
+                                                    View on Map
+                                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 3h7v7m0-7L10 14m-4 0h4v4H6v-4z"></path></svg>
+                                                </a>
+                                            @elseif($event->address)
+                                                <p><span class="font-bold">Address:</span> {{ $event->address }}</p>
+                                            @else
+                                                <p class="text-slate-500 italic">No location provided.</p>
+                                            @endif
+
+                                            @if($event->notes)
+                                                <p class="mt-2"><span class="font-bold">Notes:</span> {{ $event->notes }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div class="flex-shrink-0">
+                                        @if($event->user)
+                                            <a href="{{ route('caregiver.patient.edit', $event->user) }}"
+                                               class="inline-flex items-center justify-center px-5 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-all">
+                                                Open Patient
+                                            </a>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             <!-- STATS Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                  <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">

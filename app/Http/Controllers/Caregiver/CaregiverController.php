@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Caregiver;
 
 use App\Http\Controllers\Controller;
 
+use App\Models\EmergencySosEvent;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 //F4 - Farhan Zarif
@@ -22,7 +24,22 @@ class CaregiverController extends Controller
 
         $patients = $caregiver->patients;
 
-        return view('caregiver.dashboard', compact('patients'));
+        $activePatientIds = $caregiver->patients()
+            ->wherePivot('status', 'active')
+            ->pluck('users.id')
+            ->all();
+
+        $sosAlerts = empty($activePatientIds)
+            ? collect()
+            : (Schema::hasTable('emergency_sos_events') ? EmergencySosEvent::query()
+                ->whereNull('resolved_at')
+                ->whereIn('user_id', $activePatientIds)
+                ->with(['user.profile'])
+                ->latest()
+                ->take(10)
+                ->get() : collect());
+
+        return view('caregiver.dashboard', compact('patients', 'sosAlerts'));
     }
 
     public function sendRequest(Request $request)

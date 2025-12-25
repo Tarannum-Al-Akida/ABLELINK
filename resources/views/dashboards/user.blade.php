@@ -2,6 +2,16 @@
 
 @section('content')
 <div class="container mx-auto px-6 py-8">
+    @if(session('success'))
+        <div class="mb-6 rounded-2xl border border-green-200 bg-green-50 px-6 py-4 text-green-800 font-bold">
+            {{ session('success') }}
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-6 py-4 text-red-800 font-bold">
+            {{ session('error') }}
+        </div>
+    @endif
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
         
         <!-- SIDEBAR -->
@@ -150,19 +160,87 @@
                     </div>
                 </div>
                 <div class="lg:col-span-1">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all group cursor-pointer">
-                        <div class="flex items-center mb-3">
-                             <div class="p-3 rounded-lg bg-red-50 text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                             </div>
-                        </div>
-                        <h6 class="font-bold text-slate-800 text-lg">Emergency</h6>
-                        <p class="text-sm text-slate-500 mt-1">SOS & Alerts</p>
-                    </div>
+                    <!-- Emergency SOS (works like Profile SOS) -->
+                    <form id="sos-dashboard-form" action="{{ route('sos.store') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="latitude" id="sos-dashboard-latitude" value="">
+                        <input type="hidden" name="longitude" id="sos-dashboard-longitude" value="">
+                        <input type="hidden" name="accuracy_m" id="sos-dashboard-accuracy" value="">
+                        <input type="hidden" name="address" id="sos-dashboard-address" value="">
+                        <input type="hidden" name="notes" id="sos-dashboard-notes" value="SOS triggered from dashboard.">
+
+                        <button type="submit" id="sos-dashboard-button"
+                                class="w-full text-left bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all group">
+                            <div class="flex items-center mb-3">
+                                <div class="p-3 rounded-lg bg-red-50 text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                </div>
+                            </div>
+                            <h6 class="font-bold text-slate-800 text-lg">Emergency</h6>
+                            <p class="text-sm text-slate-500 mt-1">Tap to send SOS with your location</p>
+                            <p id="sos-dashboard-status" class="text-xs text-slate-400 mt-2"></p>
+                        </button>
+                    </form>
                 </div>
             </div>
 
         </div>
     </div>
 </div>
+
+<script>
+(() => {
+  const form = document.getElementById('sos-dashboard-form');
+  const btn = document.getElementById('sos-dashboard-button');
+  const status = document.getElementById('sos-dashboard-status');
+  if (!form || !btn) return;
+
+  let hasSubmitted = false;
+  const setStatus = (text) => { if (status) status.textContent = text || ''; };
+
+  const submitWith = (coords) => {
+    const lat = document.getElementById('sos-dashboard-latitude');
+    const lng = document.getElementById('sos-dashboard-longitude');
+    const acc = document.getElementById('sos-dashboard-accuracy');
+    const address = document.getElementById('sos-dashboard-address');
+
+    if (coords && typeof coords.latitude === 'number' && typeof coords.longitude === 'number') {
+      lat.value = coords.latitude;
+      lng.value = coords.longitude;
+      acc.value = coords.accuracy ? Math.round(coords.accuracy) : '';
+      address.value = '';
+    }
+
+    hasSubmitted = true;
+    form.submit();
+  };
+
+  form.addEventListener('submit', (e) => {
+    if (hasSubmitted) return;
+    e.preventDefault();
+
+    btn.disabled = true;
+    btn.classList.add('opacity-70', 'cursor-not-allowed');
+    setStatus('Getting your location…');
+
+    if (!navigator.geolocation) {
+      setStatus('Location not supported. Sending SOS without location…');
+      submitWith(null);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setStatus('Location captured. Sending SOS…');
+        submitWith(pos.coords);
+      },
+      () => {
+        setStatus('Location permission denied/unavailable. Sending SOS without location…');
+        submitWith(null);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  });
+})();
+</script>
 @endsection
