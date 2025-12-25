@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\EmergencySosAlertMail;
 use App\Models\EmergencySosEvent;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 
 class EmergencySosController extends Controller
@@ -38,7 +41,7 @@ class EmergencySosController extends Controller
             $address = $user->profile->address;
         }
 
-        EmergencySosEvent::create([
+        $event = EmergencySosEvent::create([
             'user_id' => $user->id,
             'latitude' => $validated['latitude'] ?? null,
             'longitude' => $validated['longitude'] ?? null,
@@ -46,6 +49,38 @@ class EmergencySosController extends Controller
             'address' => $address,
             'notes' => $validated['notes'] ?? null,
         ]);
+
+        // Notify admins + active linked caregivers (mail default is "log" if not configured).
+        try {
+            $event->loadMissing(['user.profile']);
+
+            $adminEmails = User::query()
+                ->where('role', User::ROLE_ADMIN)
+                ->whereNotNull('email')
+                ->pluck('email')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            $caregiverEmails = $user->caregivers()
+                ->wherePivot('status', 'active')
+                ->whereNotNull('users.email')
+                ->pluck('users.email')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            $recipients = array_values(array_unique(array_merge($adminEmails, $caregiverEmails)));
+            if (! empty($recipients)) {
+                Mail::to($recipients)->send(new EmergencySosAlertMail($event));
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Failed sending SOS notification email.', [
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return redirect()
             ->route('profile.show')

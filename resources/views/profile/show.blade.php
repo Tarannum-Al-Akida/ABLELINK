@@ -236,7 +236,7 @@
                     <input type="hidden" name="notes" id="sos-notes" value="SOS triggered from profile.">
 
                     <div class="flex flex-col md:flex-row gap-4 items-start md:items-center">
-                        <button type="button" id="sos-button"
+                        <button type="submit" id="sos-button"
                                 class="w-full md:w-auto inline-flex items-center justify-center px-8 py-5 rounded-2xl bg-red-600 text-white font-extrabold shadow-lg hover:bg-red-700 hover:shadow-xl transition-all">
                             <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2a10 10 0 100 20 10 10 0 000-20zM12 8v4m0 4h.01"></path></svg>
                             Send SOS
@@ -267,6 +267,7 @@
   const status = document.getElementById('sos-status');
   if (!btn || !form) return;
 
+  let hasSubmitted = false;
   const setStatus = (text) => { if (status) status.textContent = text || ''; };
 
   const submitWith = (coords) => {
@@ -282,10 +283,14 @@
       address.value = '';
     }
 
+    hasSubmitted = true;
     form.submit();
   };
 
-  btn.addEventListener('click', () => {
+  form.addEventListener('submit', (e) => {
+    if (hasSubmitted) return;
+    e.preventDefault();
+
     btn.disabled = true;
     btn.classList.add('opacity-70', 'cursor-not-allowed');
     setStatus('Getting your location…');
