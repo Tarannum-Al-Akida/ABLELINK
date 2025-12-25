@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 
+use App\Models\AidResource;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -52,6 +53,8 @@ class AdminController extends Controller
                 'disabled' => User::where('role', User::ROLE_DISABLED)->count(),
                 'caregiver' => User::where('role', User::ROLE_CAREGIVER)->count(),
             ],
+            'aidDirectoryCount' => AidResource::count(),
+            'aidDirectoryActiveCount' => AidResource::where('is_active', true)->count(),
             'recentUsers' => User::whereIn('role', User::COMMUNITY_ROLES)
                 ->latest()
                 ->take(5)

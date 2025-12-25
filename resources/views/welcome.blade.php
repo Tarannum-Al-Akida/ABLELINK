@@ -29,6 +29,9 @@
                         <span class="relative z-10">Go to Dashboard</span>
                         <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </a>
+                    <a href="{{ route('documents.upload') }}" class="px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-full font-bold text-lg shadow-md hover:shadow-lg hover:bg-slate-50 hover:-translate-y-1 transition-all duration-300">
+                        OCR & Simplify
+                    </a>
                 @else
                     <a href="{{ route('register') }}" class="group relative px-8 py-4 bg-slate-900 text-white rounded-full font-bold text-lg shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
                         <span class="relative z-10">Get Started Now</span>
@@ -36,6 +39,9 @@
                     </a>
                     <a href="{{ route('login') }}" class="px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-full font-bold text-lg shadow-md hover:shadow-lg hover:bg-slate-50 hover:-translate-y-1 transition-all duration-300">
                         Login
+                    </a>
+                    <a href="{{ route('documents.upload') }}" class="px-8 py-4 bg-emerald-600 text-white rounded-full font-bold text-lg shadow-md hover:shadow-lg hover:bg-emerald-700 hover:-translate-y-1 transition-all duration-300">
+                        Try OCR & Simplify
                     </a>
                 @endauth
             </div>

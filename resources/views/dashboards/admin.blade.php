@@ -23,6 +23,10 @@
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                         Dashboard
                     </a>
+                    <a href="{{ route('admin.aid-resources.index') }}" class="flex items-center w-full px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 font-medium transition-all">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3-1.343 3-3S13.657 2 12 2 9 3.343 9 5s1.343 3 3 3zm0 0c-3.866 0-7 3.134-7 7v5h14v-5c0-3.866-3.134-7-7-7z"/></svg>
+                        Aid Directory
+                    </a>
                     <a href="#" class="flex items-center w-full px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 font-medium transition-all">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                         Users
@@ -99,6 +103,34 @@
                      <p class="text-xs font-bold text-red-400 uppercase tracking-wider mb-2">Emergency Alerts</p>
                      <h3 class="text-3xl font-extrabold text-red-600">0</h3>
                  </div>
+            </div>
+
+            <!-- AID DIRECTORY -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 mb-8">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h5 class="text-lg font-bold text-slate-800">Aid Directory</h5>
+                        <p class="text-slate-500 text-sm mt-1">Manage public resources for users.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <a href="{{ route('aid-directory.index') }}" class="px-5 py-3 rounded-xl bg-white border border-slate-200 font-bold text-slate-700 hover:bg-slate-50 transition-all">
+                            View public
+                        </a>
+                        <a href="{{ route('admin.aid-resources.index') }}" class="px-5 py-3 rounded-xl bg-slate-900 text-white font-extrabold hover:bg-slate-800 transition-all">
+                            Manage
+                        </a>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Total entries</p>
+                        <p class="text-3xl font-extrabold text-slate-900">{{ $aidDirectoryCount ?? 0 }}</p>
+                    </div>
+                    <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-6">
+                        <p class="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2">Active (public)</p>
+                        <p class="text-3xl font-extrabold text-emerald-800">{{ $aidDirectoryActiveCount ?? 0 }}</p>
+                    </div>
+                </div>
             </div>
 
             <!-- USER ACTIVITY + JOB PLATFORM -->
