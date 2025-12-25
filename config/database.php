@@ -2,6 +2,17 @@
 
 use Illuminate\Support\Str;
 
+/**
+ * PHP 8.5+ provides `Pdo\Mysql::ATTR_SSL_CA` for configuring a CA bundle.
+ *
+ * We intentionally do NOT reference the legacy PDO constant here to avoid
+ * emitting deprecation warnings on PHP 8.5+.
+ */
+$mysqlAttrSslCa = null;
+if (defined('Pdo\\Mysql::ATTR_SSL_CA')) {
+    $mysqlAttrSslCa = \Pdo\Mysql::ATTR_SSL_CA;
+}
+
 return [
 
     /*
@@ -58,9 +69,9 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
+            'options' => extension_loaded('pdo_mysql') ? array_filter(
+                $mysqlAttrSslCa ? [$mysqlAttrSslCa => env('MYSQL_ATTR_SSL_CA')] : []
+            ) : [],
         ],
 
         'mariadb' => [
@@ -78,9 +89,9 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
+            'options' => extension_loaded('pdo_mysql') ? array_filter(
+                $mysqlAttrSslCa ? [$mysqlAttrSslCa => env('MYSQL_ATTR_SSL_CA')] : []
+            ) : [],
         ],
 
         'pgsql' => [
