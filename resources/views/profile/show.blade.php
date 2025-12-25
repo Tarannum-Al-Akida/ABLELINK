@@ -7,6 +7,11 @@
             {{ session('success') }}
         </div>
     @endif
+    @if(session('error'))
+        <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-6 py-4 text-red-800 font-bold">
+            {{ session('error') }}
+        </div>
+    @endif
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         <!-- LEFT COLUMN: Profile Card -->

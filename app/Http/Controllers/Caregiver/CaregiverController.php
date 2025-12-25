@@ -8,6 +8,7 @@ use App\Models\EmergencySosEvent;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 //F4 - Farhan Zarif
@@ -30,13 +31,13 @@ class CaregiverController extends Controller
 
         $sosAlerts = empty($activePatientIds)
             ? collect()
-            : EmergencySosEvent::query()
+            : (Schema::hasTable('emergency_sos_events') ? EmergencySosEvent::query()
                 ->whereNull('resolved_at')
                 ->whereIn('user_id', $activePatientIds)
                 ->with(['user.profile'])
                 ->latest()
                 ->take(10)
-                ->get();
+                ->get() : collect());
 
         return view('caregiver.dashboard', compact('patients', 'sosAlerts'));
     }

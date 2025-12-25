@@ -9,6 +9,8 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class AdminController extends Controller
@@ -46,16 +48,23 @@ class AdminController extends Controller
 
     public function dashboard(): View
     {
-        $activeSosCount = EmergencySosEvent::query()
-            ->whereNull('resolved_at')
-            ->count();
+        $activeSosCount = 0;
+        /** @var Collection<int, EmergencySosEvent> $activeSos */
+        $activeSos = collect();
 
-        $activeSos = EmergencySosEvent::query()
-            ->whereNull('resolved_at')
-            ->with(['user.profile'])
-            ->latest()
-            ->take(10)
-            ->get();
+        // If migrations haven't been run yet, avoid a 500 and show zero alerts.
+        if (Schema::hasTable('emergency_sos_events')) {
+            $activeSosCount = EmergencySosEvent::query()
+                ->whereNull('resolved_at')
+                ->count();
+
+            $activeSos = EmergencySosEvent::query()
+                ->whereNull('resolved_at')
+                ->with(['user.profile'])
+                ->latest()
+                ->take(10)
+                ->get();
+        }
 
         return view('dashboards.admin', [
             'counts' => [

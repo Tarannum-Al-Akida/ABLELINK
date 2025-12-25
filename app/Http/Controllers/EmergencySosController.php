@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 
 class EmergencySosController extends Controller
 {
@@ -16,6 +17,12 @@ class EmergencySosController extends Controller
 
         if (! $user || ! $user->hasRole(User::ROLE_DISABLED)) {
             abort(403, 'Unauthorized action.');
+        }
+
+        if (! Schema::hasTable('emergency_sos_events')) {
+            return redirect()
+                ->route('profile.show')
+                ->with('error', 'SOS is not ready yet. Please run database migrations first.');
         }
 
         $validated = $request->validate([
