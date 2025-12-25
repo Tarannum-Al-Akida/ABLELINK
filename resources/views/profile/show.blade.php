@@ -2,6 +2,11 @@
 
 @section('content')
 <div class="container mx-auto px-6 py-8">
+    @if(session('success'))
+        <div class="mb-6 rounded-2xl border border-green-200 bg-green-50 px-6 py-4 text-green-800 font-bold">
+            {{ session('success') }}
+        </div>
+    @endif
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         <!-- LEFT COLUMN: Profile Card -->
@@ -204,7 +209,100 @@
                 </div>
             </div>
 
+            @if($user->role === \App\Models\User::ROLE_DISABLED)
+            <!-- EMERGENCY SOS -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 relative overflow-hidden">
+                <div class="flex items-center mb-6">
+                    <div class="p-3 bg-red-50 text-red-600 rounded-xl mr-4 shadow-sm">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2a10 10 0 100 20 10 10 0 000-20zM12 8v4m0 4h.01"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900">Emergency SOS</h3>
+                        <p class="text-sm text-slate-500">One-touch alert to your caregiver & admin with your location</p>
+                    </div>
+                </div>
+
+                <form id="sos-form" action="{{ route('sos.store') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="latitude" id="sos-latitude" value="">
+                    <input type="hidden" name="longitude" id="sos-longitude" value="">
+                    <input type="hidden" name="accuracy_m" id="sos-accuracy" value="">
+                    <input type="hidden" name="address" id="sos-address" value="">
+                    <input type="hidden" name="notes" id="sos-notes" value="SOS triggered from profile.">
+
+                    <div class="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                        <button type="button" id="sos-button"
+                                class="w-full md:w-auto inline-flex items-center justify-center px-8 py-5 rounded-2xl bg-red-600 text-white font-extrabold shadow-lg hover:bg-red-700 hover:shadow-xl transition-all">
+                            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2a10 10 0 100 20 10 10 0 000-20zM12 8v4m0 4h.01"></path></svg>
+                            Send SOS
+                        </button>
+
+                        <div class="text-sm text-slate-600">
+                            <p class="font-bold text-slate-900">Tip:</p>
+                            <p>Allow location permission for accurate help.</p>
+                            <p id="sos-status" class="mt-1 text-slate-500"></p>
+                        </div>
+                    </div>
+
+                    @if($errors->any())
+                        <p class="mt-4 text-sm text-red-600 font-bold">Unable to send SOS. Please try again.</p>
+                    @endif
+                </form>
+            </div>
+            @endif
+
         </div>
     </div>
 </div>
+
+<script>
+(() => {
+  const btn = document.getElementById('sos-button');
+  const form = document.getElementById('sos-form');
+  const status = document.getElementById('sos-status');
+  if (!btn || !form) return;
+
+  const setStatus = (text) => { if (status) status.textContent = text || ''; };
+
+  const submitWith = (coords) => {
+    const lat = document.getElementById('sos-latitude');
+    const lng = document.getElementById('sos-longitude');
+    const acc = document.getElementById('sos-accuracy');
+    const address = document.getElementById('sos-address');
+
+    if (coords && typeof coords.latitude === 'number' && typeof coords.longitude === 'number') {
+      lat.value = coords.latitude;
+      lng.value = coords.longitude;
+      acc.value = coords.accuracy ? Math.round(coords.accuracy) : '';
+      address.value = '';
+    }
+
+    form.submit();
+  };
+
+  btn.addEventListener('click', () => {
+    btn.disabled = true;
+    btn.classList.add('opacity-70', 'cursor-not-allowed');
+    setStatus('Getting your location…');
+
+    if (!navigator.geolocation) {
+      setStatus('Location not supported. Sending SOS without location…');
+      submitWith(null);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setStatus('Location captured. Sending SOS…');
+        submitWith(pos.coords);
+      },
+      () => {
+        setStatus('Location permission denied/unavailable. Sending SOS without location…');
+        submitWith(null);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  });
+})();
+</script>
 @endsection

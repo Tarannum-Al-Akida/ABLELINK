@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 
+use App\Models\EmergencySosEvent;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -45,6 +46,17 @@ class AdminController extends Controller
 
     public function dashboard(): View
     {
+        $activeSosCount = EmergencySosEvent::query()
+            ->whereNull('resolved_at')
+            ->count();
+
+        $activeSos = EmergencySosEvent::query()
+            ->whereNull('resolved_at')
+            ->with(['user.profile'])
+            ->latest()
+            ->take(10)
+            ->get();
+
         return view('dashboards.admin', [
             'counts' => [
                 'employer' => User::where('role', User::ROLE_EMPLOYER)->count(),
@@ -56,6 +68,8 @@ class AdminController extends Controller
                 ->latest()
                 ->take(5)
                 ->get(),
+            'activeSos' => $activeSos,
+            'activeSosCount' => $activeSosCount,
         ]);
     }
 }

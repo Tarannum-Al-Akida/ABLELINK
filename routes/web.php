@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Profile\ProfileController;
 use App\Http\Controllers\Profile\AccessibilityController;
 use App\Http\Controllers\DashboardController; // F2 - Rifat Jahan Roza
+use App\Http\Controllers\EmergencySosController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DocumentController;
 
@@ -63,6 +64,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar'])->name('profile.avatar');
+
+    // Emergency SOS (disabled users)
+    Route::post('/sos', [EmergencySosController::class, 'store'])->name('sos.store');
     
     //F3 - Evan Yuvraj Munshi
     Route::get('/accessibility', [AccessibilityController::class, 'edit'])->name('accessibility.edit');
@@ -75,6 +79,7 @@ Route::get('/admin/login', [App\Http\Controllers\Admin\AdminController::class, '
 Route::post('/admin/login', [App\Http\Controllers\Admin\AdminController::class, 'login'])->name('admin.login.submit');
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/dashboard', [App\Http\Controllers\Admin\AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::post('/admin/sos/{event}/resolve', [EmergencySosController::class, 'resolve'])->name('admin.sos.resolve');
 });
 
 Route::get('/upload', [DocumentController::class, 'showUploadForm']);
