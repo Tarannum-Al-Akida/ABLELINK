@@ -10,9 +10,12 @@ use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Profile\ProfileController;
 use App\Http\Controllers\Profile\AccessibilityController;
 use App\Http\Controllers\DashboardController; // F2 - Rifat Jahan Roza
+use App\Http\Controllers\CourseLibraryController;
 use App\Http\Controllers\EmergencySosController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\Admin\CourseController as AdminCourseController;
+use App\Http\Controllers\Admin\CourseMediaController as AdminCourseMediaController;
 
 
 
@@ -41,6 +44,10 @@ Route::middleware('auth')->group(function () {
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+// Accessible Course Library (public-facing)
+Route::get('/courses', [CourseLibraryController::class, 'index'])->name('courses.index');
+Route::get('/courses/{course:slug}', [CourseLibraryController::class, 'show'])->name('courses.show');
 
 //F4 - Farhan Zarif
 Route::middleware(['auth'])->group(function () {
@@ -80,6 +87,22 @@ Route::post('/admin/login', [App\Http\Controllers\Admin\AdminController::class, 
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/admin/dashboard', [App\Http\Controllers\Admin\AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::post('/admin/sos/{event}/resolve', [EmergencySosController::class, 'resolve'])->name('admin.sos.resolve');
+
+    // Admin: Accessible Course Library management - F11
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/courses', [AdminCourseController::class, 'index'])->name('courses.index');
+        Route::get('/courses/create', [AdminCourseController::class, 'create'])->name('courses.create');
+        Route::post('/courses', [AdminCourseController::class, 'store'])->name('courses.store');
+        Route::get('/courses/{course}/edit', [AdminCourseController::class, 'edit'])->name('courses.edit');
+        Route::put('/courses/{course}', [AdminCourseController::class, 'update'])->name('courses.update');
+        Route::delete('/courses/{course}', [AdminCourseController::class, 'destroy'])->name('courses.destroy');
+
+        Route::get('/courses/{course}/media/create', [AdminCourseMediaController::class, 'create'])->name('courses.media.create');
+        Route::post('/courses/{course}/media', [AdminCourseMediaController::class, 'store'])->name('courses.media.store');
+        Route::get('/media/{media}/edit', [AdminCourseMediaController::class, 'edit'])->name('courses.media.edit');
+        Route::put('/media/{media}', [AdminCourseMediaController::class, 'update'])->name('courses.media.update');
+        Route::delete('/media/{media}', [AdminCourseMediaController::class, 'destroy'])->name('courses.media.destroy');
+    });
 });
 
 Route::get('/upload', [DocumentController::class, 'showUploadForm'])->name('documents.upload');
